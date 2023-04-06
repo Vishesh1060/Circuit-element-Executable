@@ -1,0 +1,57 @@
+{
+    "Jinja": {
+        "template": ""
+    },
+    "generic_present": false,
+    "entity_name": "entity",
+    "LRGates": {
+        "G1": [
+            "i1",
+            "i2"
+        ],
+        "G2": [
+            "i3",
+            "i4"
+        ],
+        "G3": [
+            "G1",
+            "G2"
+        ],
+        "G4": [
+            "G3"
+        ]
+    },
+    "Gates": [
+        "G1",
+        "G2",
+        "G3",
+        "G4"
+    ],
+    "types": {
+        "G1": {
+            "type": "AND",
+            "in": 2,
+            "out": 1
+        },
+        "G2": {
+            "type": "AND",
+            "in": 2,
+            "out": 1
+        },
+        "G3": {
+            "type": "OR",
+            "in": 2,
+            "out": 1
+        },
+        "G4": {
+            "type": "NOT",
+            "in": 1,
+            "out": 1
+        }
+    },
+    "Terminals": {
+        "in": 4,
+        "out": 1
+    },
+    "Link": {}
+}

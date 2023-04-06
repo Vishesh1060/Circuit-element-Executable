@@ -270,7 +270,7 @@ for idx, img_name in enumerate(sorted(os.listdir(img_path))):
 				Out_csv_fields['element_id'].append(f'T{terminalcounter}')
 				terminalcounter+=1
 			else: 
-				Out_csv_fields['element_id'].append(f'M{terminalcounter}')
+				Out_csv_fields['element_id'].append(f'M{misc}')
 				misc+=1
 			Out_csv_fields['confidence'].append(int(100*new_probs[jk]))
 			Out_csv_fields['rectangle_top_left'].append((x1, y1))

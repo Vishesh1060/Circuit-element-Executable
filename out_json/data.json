@@ -1,0 +1,32 @@
+{
+    "Jinja": {
+        "template": ""
+    },
+    "generic_present": false,
+    "entity_name": "entity",
+    "LRGates": {},
+    "Gates": [
+        "G0",
+        "G1",
+        "G2"
+    ],
+    "Types": {
+        "G0": {
+            "type": "and",
+            "in": -1,
+            "out": 1
+        },
+        "G1": {
+            "type": "xnor",
+            "in": -1,
+            "out": 1
+        },
+        "G2": {
+            "type": "xnor",
+            "in": -1,
+            "out": 1
+        }
+    },
+    "Terminals": {},
+    "Link": {}
+}
