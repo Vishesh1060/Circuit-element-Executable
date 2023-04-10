@@ -13,19 +13,15 @@ entity {{entity_name}} is
 	    		i{{i}} : in std_ulogic;
 		{% endfor %}
 		{% for i in range(Terminals["out"]) %}
-	    		o{{i}} : out std_ulogic
+	    		o{{i+1}} : out std_ulogic
 		{% endfor %}
 	);
 end {{entity_name}};
 
 architecture {{entity_name}}_Arch of {{entity_name}} is
-		{% for i in range(len(LRGates)) %}
+		{% for i in range(LRGates|length) %}
 			Signal var{{i}}:std_ulogic;
 		{% endfor %}
 	Begin
-		{% for i in range(len(LRGates)) %}
-			{% for j in range(len(LRGates[Gates[i]])-1) %}
-				var{{i}}<= {{LRGates[Gates[i]][j]}} {{types[Gates[i]]['type']}} {{LRGates[Gates[i]][j+1]}};
-			{% endfor %}
-		{% endfor %}
+		{{core_out}}
 end {{entity_name}}_Arch;

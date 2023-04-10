@@ -3,12 +3,13 @@ import numpy as np
 import csv
 import os
 import json
+import Image_handler as Ih
 
-from Image_handler import image_dominant_color,image_label_all,image_percent_overlap,image_remove_element,image_resize,percent_overlap
-(imgData,i,j,file)=({},-1,-1,csv.reader(open('../Mlv2/out_imgs/sv_ (73).csv','r')))
-
-
+(imgData,i,j)=({},-1,-1)
 jsout_dir='../out_json/'
+
+file=csv.reader(open('../Mlv2/out_imgs/sv_ (60).csv','r'))
+imdir='../MLv2/imgs/sv_ (60).jpg'
 #Base json template
 jsout={
     "Jinja": {
@@ -74,29 +75,38 @@ def image_assign_gateid(imgData):
 
 
 #resizing for visibility
-'''
+
 blank_image = np.zeros((imgData['img_height'][0],imgData['img_width'][0],imgData['img_channels'][0]), dtype=np.uint8)
-im2=cv2.imread('../Mlv2/out_imgs/sv_ (73).png')
-im3=cv2.imread('../MLv2/imgs/sv_ (73).jpg')
-blank_image = image_resize(blank_image, width=1000)
-im2 = image_resize(im2, width=1000)
-im3 = image_resize(im3, width=1000)
-(Gates,Types)=image_assign_gateid(imgData)
-image_percent_overlap(imgData)
+im2=cv2.imread(imdir)
+im3=cv2.imread(imdir)
+
+blank_image = Ih.image_resize(blank_image, width=1000)
+blank_image = Ih.image_label_all(blank_image,imgData)
+im3 = Ih.image_resize(im3, width=1000)
+im2 = Ih.image_resize(im2, width=1000)
+
+
+Ih.image_percent_overlap(imgData)
+
+(lower,upper)=Ih.image_dominant_color(im3)
+for elem in imgData['element_id']:
+    print(elem,'Removed')
+    im3=Ih.image_remove_element(im3,imgData,elem,1)
+
+im3 = Ih.image_label_all(im3,imgData)
+
 cv2.imshow('window',blank_image)
 cv2.imshow('window2',im2)
-(w, h) = (imgData['img_width'][0],imgData['img_height'][0])
-(x1, y1) = imgData['rectangle_top_left'][1] # Top left
-(x2, y2) = imgData['rectangle_bottom_right'][1] # Bottom right
-(lower,upper)=image_dominant_color(im3)
-im3=image_remove_element(im3,'G1')
-cv2.imshow('window-',im3)
+cv2.imshow('window3',im3)
 cv2.waitKey()
-'''
 
+
+
+'''
 (Gates,Types)=image_assign_gateid(imgData)
 jsout["Types"].update(Types)
 jsout["Gates"].extend(Gates)
 json_object = json.dumps(jsout, indent=4)
 with open(str(jsout_dir+"data.json"), "w") as outfile:
    outfile.write(json_object)
+ '''

@@ -1,6 +1,6 @@
 import cv2  
 import numpy as np
-import csv
+import functools
 
 def image_label_all(image,imgData):
     for i in range(len(imgData['rectangle_top_left'])):
@@ -40,9 +40,16 @@ def image_percent_overlap(imgData):
                     
 
 #Returns a tuple containing two values: (Most Dominant color, Least Dominant color)
-## Can be summarised as, returns (background color, foreground color)               
-def image_dominant_color(image,n_colors=5):
+## Can be summarised as, returns (background color, foreground color) 
+### Very compute heavy, using memoization to reduce memory cost
+(lower,upper)=(None,None)        
+def image_dominant_color(image,n_colors=5,mflag=0):
+    global lower
+    global upper
     im3=image
+    if mflag:
+        if lower is not None and upper is not None:
+            return (lower,upper)
     pixels = np.float32(im3.reshape(-1, 3))
     n_colors = 5
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 200, .9)
@@ -91,17 +98,21 @@ def percent_overlap(RecTL1,RecBR1,RecTL2,RecBR2):
     else:
         return float(intersection_area) / float(total_area) * 100
 
-def image_remove_element(im3,element_id):
+# Removes element by given id, returns the image 
+# Input parameters: image,imagedata,element id (given by the form G0 or M1 etc), and
+# Memoization flag, set to 1 if repeating multiple times (such as in a loop) to reduce compute cost   
+def image_remove_element(im3,imgData,element_id,mflag=0):
     index=0
-    global imgData
-    for indx,elem in imgData['element_id']:
+    #global imgData
+    for indx,elem in enumerate(imgData['element_id']):
         if(elem==element_id):
             index=indx
+            break
     
     top_left = imgData['rectangle_top_left'][index]
     bottom_right = imgData['rectangle_bottom_right'][index]
             
-    (lower,upper)=image_dominant_color(im3)
+    (lower,upper)=image_dominant_color(im3,mflag=mflag)
     thresh = cv2.inRange(im3, lower, upper)
     #kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (20,20))
     #morph = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
