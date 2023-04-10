@@ -5,7 +5,6 @@ import os
 from json import load 
 from jinja2 import FileSystemLoader as fsl
 
-
 data = load(open('data.json'))
 
 Jinja=data['Jinja']
@@ -17,26 +16,32 @@ types=data['types']
 Terminals=data['Terminals']
 Link=data['Link']
 
+core_out=''''''
+outfname='e1.vhdl'
 
-try:
-    Environment=jinja2.Environment(loader=fsl("base/"))     
-    for i in range(len(LRGates)):
-        for j in range(len(LRGates[Gates[i]])-1):
-            if i!=len(LRGates):
-                Link[Gates[i]]="var%d"%i
-            print("var%d"%i,"<=", Link[LRGates[Gates[i]][j]] if(LRGates[Gates[i]][j] in LRGates.keys()) else LRGates[Gates[i]][j],types[Gates[i]]['type'],Link[LRGates[Gates[i]][j+1]] if(LRGates[Gates[i]][j+1] in LRGates.keys()) else LRGates[Gates[i]][j+1])
-    if(Terminals['out']>len(Link)):
-        print('resolution error')
-    else:
-        for i in range(1,Terminals['out']+1):
-            print("o%d"%i,"<=",types[Gates[-1]]['type'],Link[LRGates[Gates[-1]][-1]] if(LRGates[Gates[-1]][-1] in LRGates.keys()) else LRGates[Gates[i]][j])
-    # print(Link)
-    Jinja['template']=Environment.get_template("base.vhdl")
-    out=Jinja['template'].render(Terminals,entity_name,LRGates,Gates,types)
-    print(out)
-except Exception as e:
-    print(e)
-print("e1.vhdl","generated at",os.getcwd())
+Environment=jinja2.Environment(loader=fsl("base/"))     
+for i in range(len(LRGates)):
+    for j in range(len(LRGates[Gates[i]])-1):
+        if i!=len(LRGates):
+            Link[Gates[i]]="var%d"%i
+        core_out= core_out+'\n'+str("\t\tvar%d "%i+"<= ")+str(Link[LRGates[Gates[i]][j]] if(LRGates[Gates[i]][j] in LRGates.keys()) else LRGates[Gates[i]][j]) +" "+ str(types[Gates[i]]['type']) +" "+ str(Link[LRGates[Gates[i]][j+1]] if(LRGates[Gates[i]][j+1] in LRGates.keys()) else LRGates[Gates[i]][j+1])
+
+if(Terminals['out']>len(Link)):
+    print('resolution error')
+else:
+    for i in range(1,Terminals['out']+1):
+        pass
+        core_out=core_out+'\n'+str("\t\to%d "%i+"<= ")+str(types[Gates[-1]]['type'])+" "+str(Link[LRGates[Gates[-1]][-1]] if(LRGates[Gates[-1]][-1] in LRGates.keys()) else LRGates[Gates[i]][j])
+
+# print(Link)
+Jinja['template']=Environment.get_template("base.vhdl")
+out=Jinja['template'].render({'Terminals': Terminals,'entity_name': entity_name,'LRGates': LRGates,'Gates': Gates,'types': types,'core_out':core_out})
+
+
+
+with open(outfname, "w") as file:
+    file.write(out)
+print(outfname,"generated at",os.getcwd())
     
  
 # Data sample
