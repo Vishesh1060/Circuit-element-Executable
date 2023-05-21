@@ -1,24 +1,33 @@
+import Image_handler as Ih
 import cv2
-import pytesseract
+import os
+from modelcsv import csvparse
 
-image = cv2.imread('../MLv2/imgs/sv_ (73).jpg')
+imdir='../MLv2/CGHD-TEST-SET'
+listimg=os.listdir(imdir)
+img2=[]
 
-gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 11, 5)
-
-kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
-clean = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
-
-config = r'--psm 6' # Assume a block of text of uniform font size and style
-text_regions = pytesseract.image_to_data(clean, output_type=pytesseract.Output.DICT, config=config)
-for i in range(len(text_regions['level'])):
-    x = text_regions['left'][i]
-    y = text_regions['top'][i]
-    w = text_regions['width'][i]
-    h = text_regions['height'][i]
-    
-    clean[y:y+h, x:x+w] = 0
-
-result = cv2.bitwise_and(image, image, mask=clean)
-
-cv2.imshow('result', result)
+x=0
+for imgname in listimg:
+    print('reading:',imdir+'/'+imgname)
+    img = cv2.imread(imdir+'/'+imgname)
+    bg=Ih.image_resize(img,width=879)
+#    cv2.imshow('original',img)
+    er=cv2.getStructuringElement(cv2.MORPH_RECT , (6,8))
+    dil=cv2.getStructuringElement(cv2.MORPH_RECT , (6,9))
+    for i in range(10):
+        bg=cv2.morphologyEx(bg, cv2.MORPH_DILATE, dil)
+        bg=cv2.morphologyEx(bg, cv2.MORPH_ERODE, er)
+#    out_gray=cv2.divide(img, bg, scale=255)
+    out_binary=cv2.threshold(bg, 0, 255, cv2.THRESH_OTSU )[1]
+    cv2.imshow('bg'+str(x),out_binary)
+#    img2.append(Ih.image_remove_background(img, imgData=0))
+    x=x+1
+    if(x>=1):
+        break
+'''    
+for i in range(0,x):
+    cv2.imshow('NoBG'+str(i),img2[i])
+'''    
+cv2.waitKey(0)
+cv2.destroyAllWindows()

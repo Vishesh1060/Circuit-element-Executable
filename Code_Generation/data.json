@@ -1,0 +1,48 @@
+{
+    "Jinja": {
+        "template": ""
+    },
+    "generic_present": false,
+    "entity_name": "entity",
+    "LRGates": {
+        "G1": [
+            "i1",
+            "i2"
+        ],
+        "G2": [
+            "i3",
+            "i4"
+        ],
+        "G3": [
+            "G2",
+            "G1"
+        ]        
+    },
+    "Gates": [
+        "G1",
+        "G2",
+        "G3"
+    ],
+    "types": {
+        "G1": {
+            "type": "XNOR",
+            "in": 2,
+            "out": 1
+        },
+        "G2": {
+            "type": "XNOR",
+            "in": 2,
+            "out": 1
+        },
+        "G3": {
+            "type": "AND",
+            "in": 2,
+            "out": 1
+        }
+    },
+    "Terminals": {
+        "in": 4,
+        "out": 1
+    },
+    "Link": {}
+}

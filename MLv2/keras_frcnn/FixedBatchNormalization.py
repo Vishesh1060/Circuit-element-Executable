@@ -23,8 +23,8 @@ class FixedBatchNormalization(Layer):
 
         self.input_spec = [InputSpec(shape=input_shape)]
         shape = (input_shape[self.axis],)
-        print("--+--",shape, input_shape[:],"+")
-        print("-----",input_shape[self.axis])
+        #print("--+--",shape, input_shape[:],"+")
+        #print("-----",input_shape[self.axis])
         self.gamma = self.add_weight(shape=shape,
                                      initializer=self.gamma_init,
                                      regularizer=self.gamma_regularizer,
@@ -57,7 +57,7 @@ class FixedBatchNormalization(Layer):
         del reduction_axes[self.axis]
         broadcast_shape = [1] * len(input_shape)
         broadcast_shape[self.axis] = input_shape[self.axis]
-        print("----",broadcast_shape,"*",input_shape,'-',x)
+        #print("----",broadcast_shape,"*",input_shape,'-',x)
 
         if sorted(reduction_axes) == range(K.ndim(x))[:-1]:
             x_normed = K.batch_normalization(
@@ -66,7 +66,7 @@ class FixedBatchNormalization(Layer):
                 epsilon=self.epsilon)
         else:
             # need broadcasting
-            print("-000-",self.running_mean,'+',broadcast_shape)
+            #print("-000-",self.running_mean,'+',broadcast_shape)
             broadcast_running_mean = K.reshape(self.running_mean, broadcast_shape)
             broadcast_running_std = K.reshape(self.running_std, broadcast_shape)
             broadcast_beta = K.reshape(self.beta, broadcast_shape)

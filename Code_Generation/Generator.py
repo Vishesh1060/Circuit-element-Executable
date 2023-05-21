@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+0# -*- coding: utf-8 -*-
 
 import jinja2
 import os
@@ -19,21 +19,25 @@ Link=data['Link']
 core_out=''''''
 outfname='e1.vhdl'
 
-Environment=jinja2.Environment(loader=fsl("base/"))     
+Environment=jinja2.Environment(loader=fsl("base/"))   
+    
 for i in range(len(LRGates)):
     for j in range(len(LRGates[Gates[i]])-1):
         if i!=len(LRGates):
             Link[Gates[i]]="var%d"%i
-        core_out= core_out+'\n'+str("\t\tvar%d "%i+"<= ")+str(Link[LRGates[Gates[i]][j]] if(LRGates[Gates[i]][j] in LRGates.keys()) else LRGates[Gates[i]][j]) +" "+ str(types[Gates[i]]['type']) +" "+ str(Link[LRGates[Gates[i]][j+1]] if(LRGates[Gates[i]][j+1] in LRGates.keys()) else LRGates[Gates[i]][j+1])
+        core_out= core_out+'\n'+str("\t\tvar%d "%i+"<= ")+str(Link[LRGates[Gates[i]][j]] if(LRGates[Gates[i]][j] in LRGates.keys()) else LRGates[Gates[i]][j]) +" "+ str(types[Gates[i]]['type']) +" "+ str(Link[LRGates[Gates[i]][j+1]] if(LRGates[Gates[i]][j+1] in LRGates.keys()) else LRGates[Gates[i]][j+1])+'\n'
 
 if(Terminals['out']>len(Link)):
     print('resolution error')
 else:
     for i in range(1,Terminals['out']+1):
-        pass
-        core_out=core_out+'\n'+str("\t\to%d "%i+"<= ")+str(types[Gates[-1]]['type'])+" "+str(Link[LRGates[Gates[-1]][-1]] if(LRGates[Gates[-1]][-1] in LRGates.keys()) else LRGates[Gates[i]][j])
+        #legacy solution:
+        #core_out=core_out+'\n'+str("\t\to%d "%i+"<= ")+str(types[Gates[-1]]['type'])+" "+str(Link[LRGates[Gates[-1]][-1]] if(LRGates[Gates[-1]][-1] in LRGates.keys()) else LRGates[Gates[i]][j])+'\n'
+        core_out=core_out+'\n'+str("\t\to%d "%i+"<= ")+" "+str(Link[Gates[-1]] if(LRGates[Gates[-1]][-1] in LRGates.keys()) else LRGates[Gates[i]][j])+'\n'
 
-# print(Link)
+print(Link)
+print(LRGates[Gates[i]][j])
+
 Jinja['template']=Environment.get_template("base.vhdl")
 out=Jinja['template'].render({'Terminals': Terminals,'entity_name': entity_name,'LRGates': LRGates,'Gates': Gates,'types': types,'core_out':core_out})
 
