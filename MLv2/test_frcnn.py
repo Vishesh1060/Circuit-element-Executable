@@ -273,8 +273,8 @@ for idx, img_name in enumerate(sorted(os.listdir(img_path))):
 				Out_csv_fields['element_id'].append(f'M{misc}')
 				misc+=1
 			Out_csv_fields['confidence'].append(int(100*new_probs[jk]))
-			Out_csv_fields['rectangle_top_left'].append((x1, y1))
-			Out_csv_fields['rectangle_bottom_right'].append((x2, y2))
+			Out_csv_fields['rectangle_top_left'].append((real_x1, real_y1))
+			Out_csv_fields['rectangle_bottom_right'].append((real_x2, real_y2))
 			
 			cv2.rectangle(img, (textOrg[0] - 5, textOrg[1]+baseLine - 5), (textOrg[0]+retval[0] + 5, textOrg[1]-retval[1] - 5), (0, 0, 0), 2)
 			cv2.rectangle(img, (textOrg[0] - 5,textOrg[1]+baseLine - 5), (textOrg[0]+retval[0] + 5, textOrg[1]-retval[1] - 5), (255, 255, 255), -1)

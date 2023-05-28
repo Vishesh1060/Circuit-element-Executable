@@ -2,10 +2,11 @@ import cv2
 import numpy as np
 import functools
 
-resize,r=False,None
+resize,rw,ry=False,1,1
 (lower,upper)=(None,None) 
 
 def image_label_all(image,imgData):
+    global resize,rw,ry
     if(not resize):
         for i in range(len(imgData['rectangle_top_left'])):
             cv2.rectangle(image,imgData['rectangle_top_left'][i],imgData['rectangle_bottom_right'][i], (int(155-i*10),100+i*10,10*i), 2)
@@ -13,16 +14,17 @@ def image_label_all(image,imgData):
     else:
         for i in range(len(imgData['rectangle_top_left'])):
             (x,y)=imgData['rectangle_top_left'][i]
-            (x,y)=(r*x,r*y)
+            (x,y)=(rw*x,ry*y)
             c1=(int(x),int(y))
             (x,y)=imgData['rectangle_bottom_right'][i]
-            (x,y)=(r*x,r*y)
+            (x,y)=(rw*x,ry*y)
             c2=(int(x),int(y))
             cv2.rectangle(image,c1,c2, (int(155-i*10),100+i*10,50*i), 2)
             cv2.putText(image,imgData['element_id'][i],c1, cv2.FONT_HERSHEY_DUPLEX, 0.8,(162,252, 252), 1)
     return image
 
 #Aspect ratio conserving resize function 
+##Use the new version for image aware resizing with no errors
 def image_resize(image, width = None, height = None):
     global resize,r
     resize=False
@@ -34,13 +36,39 @@ def image_resize(image, width = None, height = None):
         return image
     if width is None:
         r2 = height / float(h)
-        dim = (int(w * r), height)
+        dim = (int(w * r2), height)
     else:
         r2 = width / float(w)
         dim = (width, int(h * r2))
     r=r2
     resized = cv2.resize(image, dim, interpolation = inter)
     return resized
+
+def new_image_resize(image, width = None, height = None):
+    global resize,rw,ry
+    resize=True
+    inter = cv2.INTER_AREA
+    dim = None
+    (h, w) = image.shape[:2]
+
+    if width is None and height is None:
+        return image
+    if width is None:
+        ry1 = height / float(h)
+        dim = (int(w * ry1), height)
+
+        rw = dim[0] / float(w)
+        ry = ry1
+    else:
+        rw1 = width / float(w)
+        dim = (width, int(h * rw1))
+        
+        ry = dim[1] / float(h)
+        rw = rw1
+
+    resized = cv2.resize(image, dim, interpolation = inter)
+    return resized,(rw,ry)
+
 
 #Calculates the percentage overlap between two rectangles.
 ##Function checking for all elements in one image
@@ -171,10 +199,10 @@ def image_remove_element(im3,imgData,element_id,mflag=0):
         bottom_right = imgData['rectangle_bottom_right'][index]
     else:
         (x,y)=imgData['rectangle_top_left'][index]
-        (x,y)=(r*x,r*y)
+        (x,y)=(rw*x,ry*y)
         top_left=(int(x),int(y))        
         (x,y) = imgData['rectangle_bottom_right'][index]
-        (x,y)=(r*x,r*y)
+        (x,y)=(rw*x,ry*y)
         bottom_right=(int(x),int(y))  
             
     (lower,upper)=image_dominant_color(im3,mflag=mflag)   
