@@ -5,6 +5,12 @@ import functools
 resize,rw,ry=False,1,1
 (lower,upper)=(None,None) 
 
+#for cross module compatibility and extension
+def globalserve():
+    global resize,rw,ry
+    global lower,upper
+    return (resize,rw,ry,lower,upper)
+    
 def image_label_all(image,imgData):
     global resize,rw,ry
     if(not resize):
