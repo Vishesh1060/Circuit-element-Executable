@@ -44,11 +44,10 @@ for imgadd in Limgs:
     trialdivide.append(Ccs.imgblurdivide(img))
 
 for i in range(len(trialdivide)):
-    im_gray = cv2.cvtColor(trialdivide[i], cv2.COLOR_BGR2GRAY)
-    (thresh, im_bw) = cv2.threshold(im_gray, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-    trialdivide[i]=Ccs.imgremove_all(im_bw,Limgdata[i])
+    trialdivide[i]=Ccs.ihimgremove_all(trialdivide[i],Limgdata[i])
     trialdivide[i]=Ih.image_label_all(trialdivide[i],Limgdata[i])
-    cv2.imwrite(str(i)+Limgs[i],im_bw)
+    cv2.imwrite(str(i)+Limgs[i],trialdivide[i])
+
 #img=imgremove_all(img, imgData)
 
 #hmiss,frd=imghitmisslinefilter(img)

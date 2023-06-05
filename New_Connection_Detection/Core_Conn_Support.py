@@ -16,6 +16,15 @@ from modelcsv import csvparse
 #from Image_handler import resize,r,rw,ry as resize,r,rw,ry
 i=0
 
+def ihimgremove_all(img,imgData):
+    for idx,elemid in enumerate(imgData['element_id']):
+        print(idx,'Removing',elemid,imgData['element_name'][idx])
+        if idx>=1:
+            ## remove this condition
+            img=Ih.image_remove_element(img, imgData, elemid)
+        else:
+            img=Ih.image_remove_element(img, imgData, elemid,mflag=1)
+    return img
 
 def imgremove_all(img,imgData):
     for idx,elemid in enumerate(imgData['element_id']):
@@ -55,14 +64,19 @@ def New_image_remove_element(im3,imgData,element_id,mflag=0):
             
 #    gray = cv2.cvtColor(im3, cv2.COLOR_BGR2GRAY)
     cropped = im3[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]]
-    
-#    h,w=cropped.shape
+
+    try:
+        (h,w)=cropped.shape
+    except Exception as e:
+        print(e,end='')
+        (h,w,_)=cropped.shape
     
     _, mask = cv2.threshold(cropped, 140, 255, cv2.THRESH_BINARY)
-#    mask=np.ones(h,w)
+    mask=np.zeros((h,w),dtype=np.uint8)
 #    cv2.imshow('mask2',mask)
     contours, _ = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
 #    cv2.imshow('mask', mask)   
+
     offset_contours = []
     for cnt in contours:
         offset_cnt = cnt + top_left # add top left coordinates to each contour point    
@@ -71,8 +85,12 @@ def New_image_remove_element(im3,imgData,element_id,mflag=0):
     global i
     cv2.imwrite('mask/mask1'+str(i)+'.png',mask)
     i+=1
-    im3dash=im3.copy #cv2.cvtColor(im3, cv2.COLOR_RGB2GRAY)
-    thresh_rgb = cv2.cvtColor(im3dash, cv2.COLOR_GRAY2RGB)
+#    im3dash=cv2.cvtColor(im3, cv2.COLOR_RGB2GRAY)
+    try:    
+        thresh_rgb = cv2.cvtColor(im3, cv2.COLOR_GRAY2RGB)
+    except Exception as e:
+        print(e,end='')
+        thresh_rgb=im3.copy
 
     cv2.drawContours(thresh_rgb, offset_contours, -1, (255,255,255), 10)
     cv2.fillPoly(thresh_rgb, offset_contours, (255, 255, 255))
