@@ -100,6 +100,7 @@ def image_dominant_color(image,n_colors=5,mflag=0):
     if mflag:
         if lower is not None and upper is not None:
             return (lower,upper)
+#    print(mflag)
     pixels = np.float32(im3.reshape(-1, 3))
     n_colors = 5
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 200, .9)

@@ -36,6 +36,45 @@ def imgremove_all(img,imgData):
             img=New_image_remove_element(img, imgData, elemid)
     return img
 
+def replace_with_white(img,imgData,element_id):
+    (resize,rw,ry,lower,upper)=Ih.globalserve()
+    index=0
+    #global imgData
+    for indx,elem in enumerate(imgData['element_id']):
+        if(elem==element_id):
+            index=indx
+            break
+    if(not resize):
+        (x,y)=imgData['rectangle_top_left'][index]
+        top_left=(int(x)+10,int(y)+1)
+        top_left = imgData['rectangle_top_left'][index]
+        
+        (x,y) = imgData['rectangle_bottom_right'][index]
+        bottom_right=(int(x)-15,int(y)-15) 
+        bottom_right = imgData['rectangle_bottom_right'][index]
+    else:
+        (x,y)=imgData['rectangle_top_left'][index]
+        (x,y)=(rw*x,ry*y)
+        top_left=(int(x),int(y))        
+        (x,y) = imgData['rectangle_bottom_right'][index]
+        (x,y)=(rw*x,ry*y)
+        bottom_right=(int(x),int(y))
+
+    # Get the coordinates of the top left and bottom right corners
+    x1, y1 = top_left
+    x2, y2 = bottom_right
+    # Get the shape of the image
+    height, width, channels = img.shape
+    # Check if the coordinates are valid
+    if x1 < 0 or x1 > width or x2 < 0 or x2 > width or y1 < 0 or y1 > height or y2 < 0 or y2 > height:
+        print("Invalid coordinates")
+        return img
+    # Create a white image with the same shape as the original image
+    white = np.ones_like(img) * 255
+    # Copy the white image to the rectangular area in the original image
+    img[y1:y2, x1:x2] = white[y1:y2, x1:x2]
+    # Return the modified image
+    return img
 
 def New_image_remove_element(im3,imgData,element_id,mflag=0):
     index=0
@@ -113,7 +152,11 @@ def ValidateDivRange(xaxs):
     return divcoords
 
 def imagediv(imgData):
-    global rw
+    (resize,rw,ry,lower,upper)=Ih.globalserve()
+    if resize==False:
+        rw,ry=1,1
+    width=int(rw*imgData['img_width'][0])
+    
     elis=imgData['element_id']
     xaxs=[]
     flag=0
@@ -133,9 +176,19 @@ def imagediv(imgData):
                 flag=0
     xaxs.sort()
     divcoords=ValidateDivRange(xaxs.copy())
+    
+    croplist=[]
+    for indx,val in enumerate(divcoords):
+        xval=int(val)
+        if indx==0:
+            croplist.append((0,xval))
+        else:
+    #        print(cropped[indx-1])
+            croplist.append((croplist[indx-1][1],xval))
+    croplist.append((croplist[indx][1],width))
 #    print("--",xaxs)
 #    print("-+",divcoords)
-    return xaxs,divcoords
+    return divcoords,croplist
 
 def linedtn(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
