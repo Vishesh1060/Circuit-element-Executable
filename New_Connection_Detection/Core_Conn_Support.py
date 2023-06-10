@@ -50,7 +50,8 @@ def replace_with_white(img,imgData,element_id):
         top_left = imgData['rectangle_top_left'][index]
         
         (x,y) = imgData['rectangle_bottom_right'][index]
-        bottom_right=(int(x)-15,int(y)-15) 
+        #bottom_right=(int(x)-15,int(y)-15)
+        bottom_right=(int(x),int(y))
         bottom_right = imgData['rectangle_bottom_right'][index]
     else:
         (x,y)=imgData['rectangle_top_left'][index]
@@ -190,6 +191,33 @@ def imagediv(imgData):
 #    print("-+",divcoords)
     return divcoords,croplist
 
+
+#converts box coordinates from split images to combined, requires a parent list of all boxes lists for the split images
+def imagedivcombine(Lboxes,croplist,imgData):
+    (resize,rw,ry,lower,upper)=Ih.globalserve()
+    linedata={
+        'clistgrp':[],
+        'cboxes':[]
+        }
+    
+    if resize==False:
+        rw,ry=1,1
+    width=int(rw*imgData['img_width'][0])
+    for indx,clist in enumerate(croplist):
+        for val in Lboxes[indx]:
+            tl,tlx=val[0],val[0][0]
+            br,brx=val[1],val[1][0]
+#            print("clist",clist[indx],coord,"--")
+            tl=(tlx+clist[0],tl[1])
+            br=(brx+clist[0],br[1])
+            coord=(tl,br)
+            linedata['clistgrp'].append(indx)
+            linedata['cboxes'].append(coord)
+#    print(linedata)
+    return linedata
+        
+    
+
 def linedtn(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
@@ -235,7 +263,7 @@ def imgblurdivide(image):
     blur = cv2.GaussianBlur(gray, (17, 17),sigmaX=33, sigmaY=33)
     divide = cv2.divide(gray, blur, scale=255)
     divide= cv2.cvtColor(divide, cv2.COLOR_GRAY2BGR)
-#    cv2.imshow('Divide', divide)
+    cv2.imshow('Divide', divide)
     return divide
     
 def imghitmisslinefilter(image):
@@ -270,3 +298,116 @@ def imghitmisslinefilter(image):
     closing = cv2.morphologyEx(opening, cv2.MORPH_CLOSE, kernel_n)
     
     return hitmiss,closing
+
+i=0
+def hlplinedetector(img):
+    global i
+    mLL=0
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+  
+    blur = cv2.GaussianBlur(gray, (11, 11), 0)
+
+    # Apply Otsu's thresholding to binarize the image
+    _, thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
+    # Apply morphological opening to remove small objects or noise
+    kernel = np.ones((5, 5), np.uint8)
+    opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+    
+    edges = cv2.Canny(opening, 149, 150)
+#    cv2.imshow('edge'+str(i),edges)
+    i+=1
+    cv2.waitKey(1)
+    # Apply Probabilistic Hough Line Transform with a lower threshold value
+    lines = cv2.HoughLinesP(edges, 1, np.pi/180, 50, minLineLength=mLL)
+    return lines
+    
+def hllinedetector(img):
+    edges = cv2.Canny(img, 50, 150)
+    lines = cv2.HoughLines(edges, 1, np.pi/30, 50)
+    return lines
+
+def hllineprinter(img,lines):
+    for line in lines:
+        # Get the parameters of the line
+        rho, theta = line[0]
+        # Convert to Cartesian coordinates
+        a = np.cos(theta)
+        b = np.sin(theta)
+        x0 = a * rho
+        y0 = b * rho
+        # Get two points on the line
+        x1 = int(x0 + 1000 * (-b))
+        y1 = int(y0 + 1000 * (a))
+        x2 = int(x0 - 1000 * (-b))
+        y2 = int(y0 - 1000 * (a))
+        # Draw the line on the image
+        cv2.line(img, (x1, y1), (x2, y2), (0, 0, 255), 2)
+    return img
+
+
+
+def hlplineprinter(img,lines):
+    try:
+        for line in lines:
+            # Get the endpoints of the line
+            x1, y1, x2, y2 = line[0]
+            # Draw the line on the image
+            cv2.line(img, (x1, y1), (x2, y2), (0, 0, 255), 2)
+    except TypeError as te:
+        print(te)
+    return img
+
+i=0
+def contourlinedetector(img):
+    global i
+    # Convert the image to grayscale
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+  
+    blur = cv2.GaussianBlur(gray, (11, 11), 0)
+
+    # Apply Otsu's thresholding to binarize the image
+    _, thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
+    # Apply morphological opening to remove small objects or noise
+    kernel = np.ones((5, 5), np.uint8)
+    opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+    
+    edges = cv2.Canny(opening, 149, 150)
+    i+=1
+    cv2.imshow('edge'+str(i),edges)
+    cv2.waitKey(1)
+    # Find the contours of the edges
+    contours, hierarchy = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+    # Create an empty list to store the bounding boxes
+    boxes = []
+    # Loop through the contours
+    try:
+        for cnt,hry in zip(contours, hierarchy[0]):
+            # Approximate the contour with a polygon
+            epsilon = 0.01 * cv2.arcLength(cnt, True)
+            approx = cv2.approxPolyDP(cnt, epsilon, False)
+            # Check if the polygon has four vertices and is convex
+            if len(approx) >= 4 or cv2.isContourConvex(approx):
+               if hry[2]==-1:
+                    x, y, w, h = cv2.boundingRect(cnt)
+                    boxes.append(((x, y), (x + w, y + h)))
+    except TypeError as te:
+        print(te)
+    return boxes
+
+def contourlineprinter(img,boxes,linelabel=False):
+    linlist,i=[],0
+    for box in boxes:
+        i+=1
+        # Get the top left and bottom right coordinates of the box
+        top_left, bottom_right = box
+        # Draw a green rectangle on the image
+        cv2.rectangle(img, top_left, bottom_right, (0, 255, 0), 2)
+        if linelabel==True:
+            cv2.putText(img,'l'+str(i),top_left, cv2.FONT_HERSHEY_DUPLEX, 0.8,(162,52, 252), 1)
+            linlist.append('l'+str(i))
+    if linelabel==True:
+        return img,linlist
+    else:
+        return img

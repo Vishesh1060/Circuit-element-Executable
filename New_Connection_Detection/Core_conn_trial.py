@@ -34,6 +34,9 @@ edges = cv2.Canny(gray, 50, 150)
 # Apply HoughLines to detect lines and their parameters
 lines = cv2.HoughLines(edges, 1, np.pi/180, 100)
 
+
+
+
 # Define a function to find the intersection point of two lines
 def line_intersection(line1, line2):
     # Extract the line parameters
