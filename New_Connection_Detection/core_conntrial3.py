@@ -11,7 +11,7 @@ import numpy as np
 from modelcsv import csvparse
 import Core_Conn_Support as ccs
 
-#14,41,15,38
+#14-not,41-cgen,38
 csvpath="../MLv2/out_imgs/sv_ (38).csv"
 imdir="../MLv2/imgs/sv_ (38).jpg"
 #Limgs=os.listdir(imdir)
@@ -67,7 +67,7 @@ def linevaliditycheck(linedata):
         (a1,b1),(a2,b2) = TlBr # line top left and bottom right coordinates
         line_area = ((b2 - b1) * (a2 - a1))
         arealist.append(line_area)
-        if line_area<=150:
+        if line_area<=200:
 #            print('l'+str(i),' LArea=',line_area,end=' removed ')
             _=linedata['cboxes'].pop(i-r-1),linedata['clistgrp'].pop(i-r-1)
             r+=1
@@ -127,6 +127,7 @@ for val in croplist:
     print(val)
     imdiv.append(img[0:height,val[0]:val[1]])
 
+
 '''
 
 for indx,im in enumerate(imdiv):
@@ -159,35 +160,7 @@ linedata=ccs.imagedivcombine(Lboxes,croplist,imgData)
 linevaliditycheck(linedata)
 
 imgout,linlist=ccs.contourlineprinter(img.copy(),linedata['cboxes'],linelabel=True)
-imgout=Ih.image_label_all(imgout, imgData)
-
-Ijson={
-    "Jinja": {
-        "template": ""
-    },
-    "generic_present": False,
-    "entity_name": "entity",
-    "LRGates": {},
-    "Gates": [],
-    "Types": {},
-    "Terminals": {
-        "in": None,
-        "out": None
-    },
-    "Link": {}
-}
-
-for indx,elem in enumerate(imgData['element_id']):
-    if elem.startswith('G'):
-        Ijson["Gates"].append(elem)
-        Ijson["Types"].update({
-            elem:{
-                "type":imgData["element_name"][indx],
-                "in":None,
-                "out":1
-                }
-            })
-print(Ijson)       
+imgout=Ih.image_label_all(imgout, imgData)     
 
 indivconn={
     'elemid':None,
@@ -243,8 +216,201 @@ for indx0,lin0 in enumerate(linedata['cboxes']):
             print(linlist[indx0],"is connected to line ID: ",linlist[indx1])
     grouplineconn.append(indivlineconn)
         
+
+terminals={
+    'inp':0,
+    'out':0
+    }
+inpterminals,outterminals=[],[]
+def grouprefchange(groupconn,lineref,newref,replaceoutput=False):
+    if replaceoutput==False:
+        for gatedict in groupconn:
+            arr=gatedict['inputs']
+            for indx,lref in enumerate(arr):
+                if lref==lineref:
+                    arr[indx]=newref
+            gatedict['inputs']=arr
+    else:
+        for gatedict in groupconn:
+            arr=gatedict['outputs']
+            for indx,lref in enumerate(arr):
+                if lref==lineref:
+                    arr[indx]=newref
+            gatedict['outputs']=arr
+                
+
+
+def groupconnhandler(grouplineconn,groupconn):
+    link=[]
+    
+    for gatedict in groupconn:
+        #Gate output recognition
+        outlref=gatedict['outputs'][0]
+        link.append((outlref,gatedict['elemid']))
+    
+    for linedict in grouplineconn:
+        #Gate terminal input handler
+        if linedict['isinput']:
+            print('-----',linedict['lineid'],'------',linerefhandler('isinput',linedict['lineid'],grouplineconn,link))
+            if linerefhandler('isinput',linedict['lineid'],grouplineconn,link):
+                terminals['inp']+=1
+                newref='i'+str(len(inpterminals))
+                _,_=inpterminals.append(newref),grouprefchange(groupconn,linedict['lineid'],newref)
+                link.append((linedict['lineid'],newref))
+                print(linedict['lineid'],"replaced with",newref,"input")
+    
+    for gatedict in groupconn:
+        #Gate terminal input handler
+        for inlref in gatedict['inputs']:
+            if linerefhandler('isinput',inlref,grouplineconn,link):
+                terminals['inp']+=1
+                newref='i'+str(len(inpterminals))
+                _,_=inpterminals.append(newref),grouprefchange(groupconn,inlref, newref)
+                link.append((inlref,newref))
+                print(inlref,"replaced with",newref,"input")
+                continue
+            flag=0    
+            for tval in link:
+                if tval[0]==inlref:
+                    grouprefchange(groupconn,inlref,tval[1])
+                    print(inlref,"replaced with",tval[1],"gate output")
+                    flag=1
+                    break
+            if flag==1:
+                flag=0
+                continue
+            if inlref.startswith('l'):
+                newref=linerefhandler('traceconn',inlref,grouplineconn,link) 
+                grouprefchange(groupconn,inlref,newref)
+                print(inlref,"replaced with",newref,"intermediate connection")
+    #Gate Output handler
+    for gatedict in groupconn:
+        for outlref in gatedict['outputs']:
+            if linerefhandler('isoutput',outlref,grouplineconn,link):
+                terminals['out']+=1
+                newref='o'+str(len(outterminals))
+                outterminals.append(newref)
+                grouprefchange(groupconn,outlref,newref,replaceoutput=True)
+                link.append((outlref,newref))
+                print(outlref,"replaced with",newref,"output")
+                continue
+            for tval in link:
+                if tval[0]==outlref:
+                    grouprefchange(groupconn,outlref,tval[1],replaceoutput=True)
+                    print("Gate output: ",outlref,"replaced with",tval[1],)
+                
+        
+
+    #print(groupconn)
+                
+
+def linerefhandler(condition,lineref,grouplineconn,link):
+    for linedict in grouplineconn:
+        if condition=='isinput':
+            if lineref==linedict['lineid']:
+                if linedict['isinput']:
+                    return True
+                else:
+                    return False
+        if condition=='isoutput':
+            if lineref==linedict['lineid']:
+                if linedict['isoutput']:
+                    return True
+                else:
+                    return False
+        if condition=='traceconn':
+            if lineref==linedict['lineid']:
+                if linerefhandler('isinput', linedict['conn'][0], grouplineconn, link) or linerefhandler('isoutput', linedict['conn'][0], grouplineconn, link):
+                    for tval in link:
+                        print("link=",link)
+                        if tval[0]==linedict['conn'][0]:
+                            newref=tval[1]
+                            return newref
+                else:
+                    newref=linerefhandler('traceconn', linedict['conn'][0], grouplineconn, link)
+                    return newref
+                                
+    
+def lineconnhandler(grouplineconn,groupconn):
+    for line in grouplineconn:
+        if line['isinput']==True:
+            terminals['inp']+=1
+            print(line)
+            newref='i'+str(len(terminals))
+            inpterminals.append(newref)
+            grouprefchange(groupconn,line['lineid'],newref)
+            print(line['lineid'],"replaced with",newref)
+            continue
+        if line['isoutput']==True:
+            terminals['out']+=1
+            newref='o'+str(len(terminals))
+            outterminals.append(newref)
+            grouprefchange(groupconn,line['lineid'],newref)
+            print(line['lineid'],"replaced with",newref)
+            continue
+        if len(line['conn'])>=1:
+           # for connlines in conn:
+               pass
+           
+            
+
+groupconnhandler(grouplineconn,groupconn)
+
 print('\n\n',grouplineconn)
-print('\n\n',groupconn)
+print('\n\n',groupconn,'\n\n')        
+
+Ijson={
+    "Jinja": {
+        "template": ""
+    },
+    "generic_present": False,
+    "entity_name": "entity",
+    "LRGates": {},
+    "Gates": [],
+    "Types": {},
+    "Terminals": {
+        "in": None,
+        "out": None
+    },
+    "Link": {}
+}
+
+
+for indx,elem in enumerate(imgData['element_id']):
+    if elem.startswith('G'):
+        Ijson["Gates"].append(elem)
+        Ijson["Types"].update({
+            elem:{
+                "type":imgData["element_name"][indx],
+                "in":None,
+                "out":1
+                }
+            })
+
+
+for elemdict in groupconn:
+    #type input-output append
+    Ijson['Types'][str(elemdict['elemid'])]['in']=len(elemdict['inputs'])
+    Ijson['Types'][str(elemdict['elemid'])]['out']=len(elemdict['outputs'])
+    Ijson['LRGates'].update({elemdict['elemid']:elemdict['inputs']})
+
+countterminalin,countterminalout=0,0
+for linedict in grouplineconn:
+    if linedict['isinput']==True:
+        countterminalin+=1
+    if linedict['isinput']==True:
+        countterminalout+=1
+Ijson['Terminals']['in']=countterminalin
+Ijson['Terminals']['out']=countterminalout
+                
+
+print(Ijson)  
+import json
+print('JSON File generated succesfully at','../Code_generation/data.json')
+with open('../Code_generation/data.json','w') as jsonfile:
+    json.dump(Ijson,jsonfile,indent=4)
+    
+
 
 img=Ih.image_label_all(img, imgData)
 

@@ -1,0 +1,51 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<head>
+   
+    <title> CODEgen </title>
+    <script src="{{ url_for('static', filename='pics.js') }}"></script> <!-- use url_for to link static files -->
+    <meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='upload.css') }}">
+
+</head>
+
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li class="createAccount"><a href="{{ url_for('createAccount') }}"><button>Create Account</button></a></li> <!-- use url_for to link other routes -->
+                <li class="loginLogo"><a href="{{ url_for('createAccount') }}">login logo</a></li>
+            </ul>
+        </nav>
+    </header>
+    <section class="uploadWindow">
+        <img src="{{ url_for('static', filename='images/upload.png') }}" alt="Uploaded-image">
+    </section>
+    <!-- use a form to submit the image to the flask app -->
+    <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data"> <!-- use url_for to link the upload route -->
+        <input type="file" id="imageInput" name="imageInput" accept="image/*" style="display:none">
+        <section class="uploadButtons">
+            <div class="takePhotos , uploadClick">
+                <button class="taking">Take Photo</button>
+            </div>
+            <div class="uploadClick">
+                <button class="selectImage">Select Image</button>
+            </div>
+        </section>  
+
+
+        <div class="uploadFinal">
+            <button type="submit">Upload</button>
+        </div>
+    </form>
+
+
+    <footer>
+        <section class="footerText">● CODEgen© ● Documentation ● Github ●</section>
+    </footer>
+
+</body>
+
+</html>

@@ -1,0 +1,42 @@
+<!-- showCode.html -->
+<!DOCTYPE html>
+<head>
+
+    <title>CODEgen login</title>
+
+    <meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='showCode.css') }}">
+    <script src="{{ url_for('static', filename='showCode.js') }}"></script>
+</head>
+<body>
+
+    <header>
+        <nav>
+            <ul>
+                <li class="createAccount"><a href="{{ url_for('createAccount') }}"><button>Create Account</button></a></li>
+                <li class="loginLogo"><a href="{{ url_for('createAccount') }}">login logo</a></li>
+            </ul>
+        </nav>
+
+    </header>
+
+    <div class="loader"></div>
+
+    <h4>code generation in process</h4>
+    <div>
+        <img id="imageOutput" src="{{ image_url }}" alt="out_img"> <!-- use a variable to pass the image url from the flask app -->
+    </div>
+
+    <footer>
+        <section class="footerText">● CODEgen© ● Documentation ● Github ●</section>
+    </footer>
+
+
+    <!-- <h1>chill BOIS <br>WORK in PROGress.. 🍻<br><br>(⓿_⓿)(❁´◡`❁) <br><br>(•_•) <br><br> (•_•)>⌐■-■ <br><br>(⌐■_■)</h1> -->
+
+</body>
+
+</html>

@@ -1,4 +1,4 @@
-0# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 import jinja2
 import os
@@ -12,29 +12,40 @@ entity_name=data['entity_name']
 generic_present=data['generic_present']
 LRGates=data['LRGates']
 Gates=data['Gates']
-types=data['types']
+types=data['Types']
 Terminals=data['Terminals']
 Link=data['Link']
-
 core_out=''''''
 outfname='e1.vhdl'
 
 Environment=jinja2.Environment(loader=fsl("base/"))   
+
+for i in range(len(LRGates)):
+    for j in range(len(LRGates[Gates[i]])-1):
+        if i!=len(LRGates):
+            Link[Gates[i]]="var%d"%i
+
     
 for i in range(len(LRGates)):
     for j in range(len(LRGates[Gates[i]])-1):
         if i!=len(LRGates):
             Link[Gates[i]]="var%d"%i
-        core_out= core_out+'\n'+str("\t\tvar%d "%i+"<= ")+str(Link[LRGates[Gates[i]][j]] if(LRGates[Gates[i]][j] in LRGates.keys()) else LRGates[Gates[i]][j]) +" "+ str(types[Gates[i]]['type']) +" "+ str(Link[LRGates[Gates[i]][j+1]] if(LRGates[Gates[i]][j+1] in LRGates.keys()) else LRGates[Gates[i]][j+1])+'\n'
-
+        print(Gates[i],LRGates)
+        try:
+            core_out= core_out+'\n'+str("\t\tvar%d "%i+"<= ")+str(Link[LRGates[Gates[i]][j]] if(LRGates[Gates[i]][j] in LRGates.keys()) else LRGates[Gates[i]][j]) +" "+ str(types[Gates[i]]['type']) +" "+ str(Link[LRGates[Gates[i]][j+1]] if(LRGates[Gates[i]][j+1] in LRGates.keys()) else LRGates[Gates[i]][j+1])+'\n'
+        except Exception as e:
+            print("Error=",e.args)
+                   
 if(Terminals['out']>len(Link)):
     print('resolution error')
+
 else:
     for i in range(1,Terminals['out']+1):
         #legacy solution:
         #core_out=core_out+'\n'+str("\t\to%d "%i+"<= ")+str(types[Gates[-1]]['type'])+" "+str(Link[LRGates[Gates[-1]][-1]] if(LRGates[Gates[-1]][-1] in LRGates.keys()) else LRGates[Gates[i]][j])+'\n'
-        core_out=core_out+'\n'+str("\t\to%d "%i+"<= ")+" "+str(Link[Gates[-1]] if(LRGates[Gates[-1]][-1] in LRGates.keys()) else LRGates[Gates[i]][j])+'\n'
+        core_out=core_out+'\n'+str("\t\to%d "%i+"<= ")+" "+str(Link[Gates[i]] if(LRGates[Gates[-1]][-1] in LRGates.keys()) else LRGates[Gates[i]][j])+'\n'
 
+print(core_out)
 print(Link)
 print(LRGates[Gates[i]][j])
 
