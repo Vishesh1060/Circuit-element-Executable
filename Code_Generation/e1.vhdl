@@ -27,15 +27,8 @@ architecture entity_Arch of entity is
 			Signal var2:std_ulogic;
 		
 	Begin
-		
-		var0 <= i0 xor i1
-
-		var1 <= var0 xor i1
-
-		var2 <= i0 xor var0
-
-		o1 <=  var1
-
-		o2 <=  var2
-
+		 var0  <= i0 xor i1
+	 var1  <= var0 xor i1
+	 var2  <= i0 xor var0
+	
 end entity_Arch;

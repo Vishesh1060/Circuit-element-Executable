@@ -372,6 +372,8 @@ Ijson={
         "in": None,
         "out": None
     },
+    'outterminals':{
+        },
     "Link": {}
 }
 
@@ -393,7 +395,10 @@ for elemdict in groupconn:
     Ijson['Types'][str(elemdict['elemid'])]['in']=len(elemdict['inputs'])
     Ijson['Types'][str(elemdict['elemid'])]['out']=len(elemdict['outputs'])
     Ijson['LRGates'].update({elemdict['elemid']:elemdict['inputs']})
-
+'''    
+for elemdict in groupconn:
+    Ijson['outterminals'].    
+'''
 countterminalin,countterminalout=0,0
 for linedict in grouplineconn:
     if linedict['isinput']==True:

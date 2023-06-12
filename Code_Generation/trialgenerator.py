@@ -15,14 +15,16 @@ LRGates=data['LRGates']
 Gates=data['Gates']
 types=data['Types']
 Terminals=data['Terminals']
-Link,tempLink,GateVarLink=data['Link'],[],[]
-core_out=''''''
+Link,tempLink=data['Link'],[]
+core_out,lines='''''',[]
 
 #vhdl_code = template.render(data)
 #print(data)
-
 templink,internalcheck=[],[]
 varcounter=0
+
+
+    
 
 def replacer(newinp,originalinp,val):
     print("-----",newinp)
@@ -45,7 +47,8 @@ def replacer(newinp,originalinp,val):
         return newinp
 
 def terminalgates(LRGates):
-    global internalcheck,tempLink,varcounter,GateVarLink
+    global internalcheck,tempLink,lines,varcounter
+    internalline=[]
     outputs=list(LRGates.keys())
     inputs=[]
     for key in LRGates.keys():
@@ -58,50 +61,42 @@ def terminalgates(LRGates):
                 flag=0
                 break
         if flag==1:
-            #print('terminal gate')
-            #print(outputs[indx])
+            print('terminal gate')
+            print(outputs[indx])
             internalcheck.append(outputs[indx])
-            newvariable="var%d"%varcounter
-            GateVarLink.append((outputs[indx],newvariable))
             tempLink.append((outputs[indx],LRGates[outputs[indx]]))
+            #print("var%d"%varcounter,"<=",end='')
+            internalline.append(str("var%d "%varcounter))
+            internalline.append(str("<="))
             varcounter+=1
-    print(GateVarLink)
+            for indx1,inps in enumerate(LRGates[outputs[indx]]):
+                internalline.append(inps)
+                if indx1!=len(LRGates[outputs[indx]])-1: 
+                    internalline.append(types[outputs[indx]]['type'])
+    lines.append((internalline))
+    print(templink)
+    return lines
 
 def partialterminalgates(LRGates):
     global internalcheck,tempLink,varcounter,GateVarLink
+    internalline=[]
     outputs=list(LRGates.keys())
     inputs=[]
     for key in LRGates.keys():
         inputs.append(LRGates[key])
     newinputs=[]
     for indx,indivinput in enumerate(inputs):
-        flag=0
-        print(indivinput)
-        for gref in indivinput:
-            if gref.startswith('i') and not (outputs[indx] in internalcheck):
+        flagi,flagni=0,0
+        for inpref in indivinput:
+            if inpref.startswith('i')and not (outputs[indx] in internalcheck):
                 flag=1 
                 break
         if flag==1:
             print('partial terminal gate')
             print(outputs[indx])
             #add output of gate to variable linker
-            newvariable="var%d"%varcounter
-            GateVarLink.append((outputs[indx],newvariable))
-            varcounter+=1
             internalcheck.append(outputs[indx])
-            for val in GateVarLink:
-                for indx1,inps in enumerate(LRGates[outputs[indx]]):
-                    if val[0]==inps:
-                        originalinp=LRGates[outputs[indx]]
-                        newinp=replacer(newinputs,originalinp, val)
-                        #print("--------------",val[1],LRGates[outputs[indx]],inps,outputs[indx])
-                        
-                        #replace gate input from wire to gate
-                    try:
-                        tempLink.append((outputs[indx],newinp))
-                    except:
-                        pass
-                    break
+    
     print(tempLink)
                 
 def interconngates(LRGates):
@@ -120,21 +115,8 @@ def interconngates(LRGates):
         if flag==1:
             print('interconnected gate')
             print(outputs[indx])
-            #add output of gate to variable linker
-            newvariable="var%d"%varcounter
-            GateVarLink.append((outputs[indx],newvariable))
-            varcounter+=1
             internalcheck.append(outputs[indx])
-            #tempLink.append((outputs[indx],LRGates[outputs[indx]]))
-            newinputs=[]
-            for val in GateVarLink:
-                for indx1,inps in enumerate(LRGates[outputs[indx]]):
-                    if val[0]==inps:
-                        originalinp=LRGates[outputs[indx]]
-                        newinp=replacer(newinputs,originalinp, val)
-                        #print("--------------",val[1],LRGates[outputs[indx]],inps,outputs[indx])
-                        tempLink.append((outputs[indx],newinp))
-                        #replace gate input from wire to gate
+            tempLink.append((outputs[indx],LRGates[outputs[indx]]))
     print(tempLink)    
     
 for i in range(len(LRGates)):
@@ -143,7 +125,9 @@ for i in range(len(LRGates)):
 
 print(LRGates)
 terminalgates(LRGates)
-partialterminalgates(LRGates)
+
+
+#partialterminalgates(LRGates)
 interconngates(LRGates)
 
 for line in tempLink:
@@ -154,7 +138,6 @@ for line in tempLink:
         # if i!=len(LRGates):
         #     Link[Gates[i]]="var%d"%i
         # core_out= core_out+'\n'+str("\t\tvar%d "%i+"<= ")+str(Link[LRGates[Gates[i]][j]] if(LRGates[Gates[i]][j] in LRGates.keys()) else LRGates[Gates[i]][j]) +" "+ str(types[Gates[i]]['type']) +" "+ str(Link[LRGates[Gates[i]][j+1]] if(LRGates[Gates[i]][j+1] in LRGates.keys()) else LRGates[Gates[i]][j+1])+'\n'
-
 
 
 '''
