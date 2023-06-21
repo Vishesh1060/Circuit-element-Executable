@@ -6,44 +6,58 @@
     "entity_name": "entity",
     "LRGates": {
         "G0": [
-            "i0",
-            "i1"
+            "G1",
+            "G2"
         ],
         "G1": [
-            "G0",
+            "G3",
             "i1"
         ],
         "G2": [
-            "i0",
-            "G0"
+            "i2",
+            "i3"
+        ],
+        "G3": [
+            "i0"
         ]
     },
     "Gates": [
         "G0",
         "G1",
-        "G2"
+        "G2",
+        "G3"
     ],
     "Types": {
         "G0": {
-            "type": "xor",
+            "type": "and",
             "in": 2,
             "out": 1
         },
         "G1": {
-            "type": "xor",
+            "type": "or",
             "in": 2,
             "out": 1
         },
         "G2": {
-            "type": "xor",
+            "type": "or",
             "in": 2,
+            "out": 1
+        },
+        "G3": {
+            "type": "not",
+            "in": 1,
             "out": 1
         }
     },
     "Terminals": {
-        "in": 2,
-        "out": 2
+        "in": 4,
+        "out": 4
     },
-    "outterminals": {},
+    "outterminals": [
+        [
+            "G0",
+            "o0"
+        ]
+    ],
     "Link": {}
 }

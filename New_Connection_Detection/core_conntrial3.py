@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jun  5 22:25:58 2023
+Created on Fri May  5 22:25:58 2023
 
-@author: vishe
+@author: vishesh
 """
 
 import cv2,os
@@ -12,8 +12,8 @@ from modelcsv import csvparse
 import Core_Conn_Support as ccs
 
 #14-not,41-cgen,38
-csvpath="../MLv2/out_imgs/sv_ (38).csv"
-imdir="../MLv2/imgs/sv_ (38).jpg"
+csvpath="../MLv2/out_imgs/sv_ (41).csv"
+imdir="../MLv2/imgs/sv_ (41).jpg"
 #Limgs=os.listdir(imdir)
 
 imgData=csvparse(csvpath)
@@ -100,13 +100,6 @@ def Connrcgn(GateTlbr,LineTlbr, threshold=10):
   return condition
 
 
-'''
-i=0
-for elem in imgData['element_id']:
-    img=Ih.image_remove_element(img, imgData,elem,i)
-    i+=1
-'''
-
 img=ccs.imgblurdivide(img)
 
 for elem in imgData['element_id']:
@@ -148,8 +141,8 @@ for indx,im in enumerate(imdiv3):
     cv2.imshow('imdiv3'+str(indx),im)
 
 '''
-# for indx,im in enumerate(imdiv):
-#     cv2.imshow('im'+str(indx),im)
+for indx,im in enumerate(imdiv):
+   cv2.imwrite('im'+str(indx)+'.png',im)
 
 Lboxes=[]
 for indx,im in enumerate(imdiv):
@@ -372,8 +365,7 @@ Ijson={
         "in": None,
         "out": None
     },
-    'outterminals':{
-        },
+    'outterminals':[],
     "Link": {}
 }
 
@@ -395,10 +387,14 @@ for elemdict in groupconn:
     Ijson['Types'][str(elemdict['elemid'])]['in']=len(elemdict['inputs'])
     Ijson['Types'][str(elemdict['elemid'])]['out']=len(elemdict['outputs'])
     Ijson['LRGates'].update({elemdict['elemid']:elemdict['inputs']})
-'''    
+
 for elemdict in groupconn:
-    Ijson['outterminals'].    
-'''
+    for out in elemdict['outputs']:
+        if out.startswith('o'):
+            Ijson['outterminals'].append((elemdict['elemid'],out))
+    #Ijson['outterminals'].append(elemdict)    
+
+
 countterminalin,countterminalout=0,0
 for linedict in grouplineconn:
     if linedict['isinput']==True:
@@ -419,9 +415,9 @@ with open('../Code_generation/data.json','w') as jsonfile:
 
 img=Ih.image_label_all(img, imgData)
 
-cv2.imshow('image',img)
+cv2.imwrite('image.png',img)
 
-cv2.imshow('imageout',imgout)
+cv2.imwrite('imageout.png',imgout)
 
 
 

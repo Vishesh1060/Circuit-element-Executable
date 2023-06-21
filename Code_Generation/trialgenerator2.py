@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun Jun 11 17:43:21 2023
+Created on Fri Jun  2 23:35:48 2023
 
 @author: vishesh
 """
@@ -10,6 +10,7 @@ from jinja2 import Template
 from jinja2 import FileSystemLoader as fsl
 import jinja2
 import os
+
 
 with open("data.json") as f:
     data = json.load(f)
@@ -25,6 +26,7 @@ Gates=data['Gates']
 types=data['Types']
 Terminals=data['Terminals']
 Link=data['Link']
+outterminals=data['outterminals']
 core_out,lines,varcounter,varlink='''''',[],-1,[]
 Environment=jinja2.Environment(loader=fsl("base/"))  
 outfname='e1.vhdl'
@@ -158,6 +160,20 @@ def interconngates(LRGates):
             newvar=varhandler(gatetype, gateref)
             linehandler(gatetype, gateref, newvar,indivinput)
 
+def outgenerator():
+    global outterminals,lines,core_out
+    for out in outterminals:
+        templine=[]
+        templine.append(out[1])
+        templine.append(' <= ')
+        for var in varlink:
+            if var[0]==out[0]:
+                newvar=var[1]
+        templine.append(str(newvar))
+        print("outline:",templine)
+        lines.append(templine)
+
+
 def conngenerator(lines):
     global core_out
     for lrapper in lines:
@@ -170,8 +186,10 @@ def conngenerator(lines):
 print('LRGates:',LRGates)
 terminalgates(LRGates)
 partialterminalgates(LRGates) 
-interconngates(LRGates)  
+interconngates(LRGates)
+outgenerator()
 conngenerator(lines) 
+
 
 Jinja['template']=Environment.get_template("base.vhdl")
 out=Jinja['template'].render({'Terminals': Terminals,'entity_name': entity_name,'LRGates': LRGates,'Gates': Gates,'types': types,'core_out':core_out})
@@ -182,9 +200,5 @@ with open(outfname, "w") as file:
     file.write(out)
 print(outfname,"generated at",os.getcwd())
     
- 
-
-
-print(core_out)
-#print(varlink)
+ #print(varlink)
     
